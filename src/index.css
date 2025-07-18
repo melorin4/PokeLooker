@@ -1,0 +1,39 @@
+@import url('https://fonts.googleapis.com/css2?family=Jersey+15&family=Pixelify+Sans&display=swap');
+
+*{
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Jersey 15", sans-serif
+}
+
+html{
+  scroll-behavior: smooth;
+}
+
+input,button{
+  border: none;
+  outline: none;
+  appearance: none;
+  background: transparent;
+  color: inherit;
+}
+
+a{
+  text-decoration: none;
+  color:inherit;
+}
+
+.maxWidth{
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.btn{
+  background-color: gold;
+  color: rgb(63,10,199);
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+  border:5px;
+  cursor:pointer;
+}

@@ -1,5 +1,5 @@
 .pokemon-feed {
-    margin-top: 6 rem;
+    margin-top: 6rem;
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
     gap: 1rem;
@@ -9,7 +9,7 @@
     padding: 10px;
     border-radius: 5px;
     display:flex;
-    gap: 1 rem;
+    gap: 1rem;
     flex-direction: column;
     align-items: center;
     justify-content: space-between;
@@ -28,14 +28,16 @@
 .card .text{
     width: 100%;
     text-align: center;
+    
 }
 
 .card .pokeId {
-    font-size: 0.8rem;
+    font-size: 1rem;
     margin-right: 5px;
     font-weight: 400;
 }
 
 .card .name{
-    text-transform: capitalize;
+    text-transform: uppercase;
+    
 }

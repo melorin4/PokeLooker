@@ -50,3 +50,10 @@ a{
 .pagination button{
   min-width: 100px;
 }
+
+.loadingScreen{
+  height: 100vh;
+  display:flex;
+  align-items: center;
+  justify-content: center;
+}

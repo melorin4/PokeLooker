@@ -8,7 +8,7 @@ const Header = () => {
         <header>
             <nav>
                 <img src={logo} alt="logo" />
-                <span classname='logo-text'>PokeLooker</span>
+                <span className='logo-text'>PokeLooker</span>
                 <div className="search-container">
                     <input type="text" placeholder="Search by name or id"/>
                     <Button Label={"Search"}/>

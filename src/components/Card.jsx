@@ -1,18 +1,20 @@
 import React from 'react';
-
+import  "../css/Feed.css"
 const Card=({data})=> {
     console.log(data)
     //for imgs
 
-    //16.58
+    const urlParts = data.url.split("/");
+    const pokeId = urlParts[urlParts.length -2]
+    const imgUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokeId}.png`
     return (
 
-            <div classname="card">
-                <img src="https://github.com/PokeAPI/sprites/blob/master/sprites/pokemon/1.png?raw=true" alt="Bulbasaur" />
+            <div className="card">
+                <img src={imgUrl} alt="Bulbasaur" />
                 <div className="text">
-                    <h4 className="name">
-                        <span className="pokeId">#01 </span>
-                        Bulbasaur
+                    <h4 className="name" >
+                        <span className="pokeId">{pokeId}</span>{data.name}
+                        
                     </h4>
                 </div>
             </div>

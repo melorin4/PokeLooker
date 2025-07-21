@@ -8,7 +8,9 @@ const App = () => {
     <div className='App'>
       <Routes>
         <Route path={"/"} element={<Home/>}/>
-        <Route path={"/:pokemon"} element={<SearchedPokemon/>}/>
+
+
+        <Route path={"/:pokemon"} element={<SearchedPokemon />} />
       </Routes>
     </div>
   )

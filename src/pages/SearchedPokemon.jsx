@@ -46,18 +46,18 @@ const SearchedPokemon = () => {
         </Link>
       </div>
 
-      {selectedPokemon && (
-        <div>
-          <h1>{selectedPokemon.name}</h1>
-          <img
-            src={selectedPokemon.sprites.front_default}
-            alt={selectedPokemon.name}
-          />
-          <p>Height: {selectedPokemon.height}</p>
-          <p>Weight: {selectedPokemon.weight}</p>
-
+      <div className="pokemon-details">
+        <div className="searched-pokemon-info">
+          <h4>{selectedPokemon.name}</h4>
+          <div className="type">
+            {selectedPokemon.types.map((type,index)=>(
+              <span key={index} style={{
+                backgroundColor:""
+              }}>{type.type.name}</span>
+            ))}
+          </div>
         </div>
-      )}
+      </div>
     </div>
   );
 };

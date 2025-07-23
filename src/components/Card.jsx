@@ -1,5 +1,7 @@
 import React from 'react';
 import  "../css/Feed.css"
+
+
 const Card=({data})=> {
     console.log(data)
     //for imgs
@@ -18,13 +20,14 @@ const Card=({data})=> {
             <h4 className="name">
               <span className="pokeId">#{pokeId}</span> {data.name}
             </h4>
+            
           </div>
         </div>
         <div className="card-back">
             <img src={backImgUrl} alt={data.name} />
             <div className="text">
-            <p>Weight:</p>
-            <p>Height:</p>
+            <p>Weight: {data.weight}</p>
+            <p>Height:{data.height}</p>
             <h4 className="name">
               <span className="pokeId">#{pokeId}</span> {data.name}
             </h4>

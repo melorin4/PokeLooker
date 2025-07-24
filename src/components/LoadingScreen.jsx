@@ -1,8 +1,8 @@
 import React from 'react';
-
+import "../css/Loader.css"
 const LoadingScreen=()=> {
     return (
-        <div>Loading...</div>
+        <div className="loader"></div>
     );
 }
 

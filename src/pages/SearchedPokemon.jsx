@@ -101,6 +101,18 @@ const SearchedPokemon = () => {
                 key={index}
                 style={{
                   backgroundColor: colours[type.type.name],
+                  padding: "0.3rem 0.8rem",
+                  color: "white",
+                  fontWeight: "600",
+                  textTransform: "capitalize",
+                  borderRadius: "12px",
+                  fontSize: "0.75rem",
+                  minWidth: "60px",
+                  textAlign: "center",
+                  boxShadow: "0 1px 2px rgba(0,0,0,0.25)",
+                  userSelect: "none",
+                  cursor: "default",
+                  transition: "background-color 0.3s ease",
                 }}
               >
                 {type.type.name}

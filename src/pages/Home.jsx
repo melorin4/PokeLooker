@@ -1,61 +1,68 @@
 import React, { useEffect, useState } from "react";
+import { useSelector, useDispatch } from 'react-redux'; 
+import { 
+  fetchPokemonList, 
+  selectPokemonList, 
+  selectPokemonListMeta,
+  selectListLoading, 
+  selectError,
+  selectIsPokemonListFresh 
+} from '../store/pokemonSlice'; 
 import Header from "../components/Header";
 import Feed from "../components/Feed";
 import LoadingScreen from "../components/LoadingScreen";
 
 const Home = () => {
-  const [allPokemons, setAllPokemons] = useState([]);
+  const dispatch = useDispatch(); 
+  
+  const allPokemons = useSelector(selectPokemonList);
+  const pokemonListMeta = useSelector(selectPokemonListMeta);
+  const listLoading = useSelector(selectListLoading);
+  const error = useSelector(selectError);
+  const isListFresh = useSelector(selectIsPokemonListFresh);
+  
   const [paginatedPokemons, setPaginatedPokemons] = useState([]);
   const [filteredPokemons, setFilteredPokemons] = useState([]);
   const [offSet, setOffSet] = useState(() => {
     const storedOffSet = sessionStorage.getItem("offset");
     return storedOffSet ? parseInt(storedOffSet, 10) : 0;
   });
-  const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
   const [noResults, setNoResults] = useState(false);
 
-  // Fetch all pokemons on mount (just names + urls)
   useEffect(() => {
-    async function fetchAllPokemons() {
-      try {
-        const res = await fetch("https://pokeapi.co/api/v2/pokemon?limit=2000");
-        const data = await res.json();
-        setAllPokemons(data.results);
-      } catch (error) {
-        console.error("Failed to fetch all pokemons", error);
-      }
+    if (allPokemons.length > 0 && isListFresh) {
+      console.log(`✅ Found ${allPokemons.length} Pokemon in cache! No API call needed.`);
+      return; 
     }
-    fetchAllPokemons();
-  }, []);
+    
+    if (allPokemons.length === 0) {
+      console.log('🌐 No Pokemon list in cache, fetching from API...');
+    } else {
+      console.log('🔄 Pokemon list cache is old (>1 hour), refreshing...');
+    }
+    
+    dispatch(fetchPokemonList({ limit: 1000, offset: 0 }));
+  }, [dispatch, allPokemons.length, isListFresh]);
 
-  // Fetch paginated pokemons for normal display
   useEffect(() => {
-    async function fetchPaginated() {
-      setLoading(true);
-      setNoResults(false);
-      try {
-        const apiUrl = `https://pokeapi.co/api/v2/pokemon?limit=48&offset=${offSet}`;
-        const res = await fetch(apiUrl);
-        const data = await res.json();
-        setPaginatedPokemons(data.results);
-      } catch (error) {
-        console.error("Failed to fetch paginated pokemons", error);
-        setPaginatedPokemons([]);
-      }
-      setLoading(false);
+    if (query.trim() === "" && allPokemons.length > 0) {
+      const startIndex = offSet;
+      const endIndex = offSet + 48;
+      const paginated = allPokemons.slice(startIndex, endIndex);
+      setPaginatedPokemons(paginated);
+      console.log(`📄 Showing Pokemon ${startIndex + 1}-${Math.min(endIndex, allPokemons.length)} from cache`);
     }
+  }, [offSet, query, allPokemons]);
 
-    if (query.trim() === "") {
-      fetchPaginated();
-    }
-  }, [offSet, query]);
-
-  // Filter locally for partial matches when query changes
   useEffect(() => {
     if (query.trim() === "") {
       setFilteredPokemons([]);
       setNoResults(false);
+      return;
+    }
+
+    if (allPokemons.length === 0) {
       return;
     }
 
@@ -65,33 +72,58 @@ const Home = () => {
 
     setFilteredPokemons(filtered);
     setNoResults(filtered.length === 0);
+    console.log(`🔍 Filtered to ${filtered.length} Pokemon matching "${query}"`);
   }, [query, allPokemons]);
 
-  // Decide which list to show
   const displayPokemons = query.trim() === "" ? paginatedPokemons : filteredPokemons;
+  
+  const isLoading = listLoading && allPokemons.length === 0;
 
   return (
     <div className="Home maxWidth">
       <Header query={query} setQuery={setQuery} />
-      {loading && <LoadingScreen />}
-      {!loading && noResults && <p>No Pokémon found for "{query}"</p>}
-      {!loading && !noResults && (
+      
+      {allPokemons.length > 0 && (
+        <div style={{ 
+          fontSize: '0.8rem', 
+          color: '#666', 
+          textAlign: 'center', 
+          marginBottom: '1rem' 
+        }}>
+        </div>
+      )}
+      
+      {isLoading && <LoadingScreen />}
+      
+      {!isLoading && noResults && <p>No Pokémon found for "{query}"</p>}
+      {!isLoading && !noResults && displayPokemons.length > 0 && (
         <>
           <Feed pokemons={displayPokemons} />
           {query.trim() === "" && (
             <div className="pagination">
-              <button className="btn" onClick={() => {
-                const newOffSet = offSet <= 50 ? 0 : offSet - 50;
-                setOffSet(newOffSet);
-                sessionStorage.setItem("offset", newOffSet.toString());
-              }}>
+              <button 
+                className="btn" 
+                onClick={() => {
+                  const newOffSet = offSet <= 50 ? 0 : offSet - 50;
+                  setOffSet(newOffSet);
+                  sessionStorage.setItem("offset", newOffSet.toString());
+                }}
+                disabled={offSet === 0}
+              >
                 Prev
               </button>
-              <button className="btn" onClick={() => {
-                const newOffSet = offSet + 50;
-                setOffSet(newOffSet);
-                sessionStorage.setItem("offset", newOffSet.toString());
-              }}>
+              <span style={{ margin: '0 1rem', fontSize: '0.9rem' }}>
+                Page {Math.floor(offSet / 48) + 1}
+              </span>
+              <button 
+                className="btn" 
+                onClick={() => {
+                  const newOffSet = offSet + 48;
+                  setOffSet(newOffSet);
+                  sessionStorage.setItem("offset", newOffSet.toString());
+                }}
+                disabled={offSet + 48 >= allPokemons.length}
+              >
                 Next
               </button>
             </div>

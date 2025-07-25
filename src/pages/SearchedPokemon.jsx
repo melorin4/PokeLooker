@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
+import { useSelector, useDispatch } from 'react-redux'; 
+import { fetchPokemon, selectPokemonByName, selectLoading, selectError } from '../store/pokemonSlice'; 
 import LoadingScreen from '../components/LoadingScreen';
 import ErrorScreen from './ErrorScreen';
 import Button from '../components/Button';
@@ -9,20 +11,23 @@ import "../css/SearchedPokemon.css"
 
 const SearchedPokemon = () => {
   const { pokemon } = useParams();
-  const [selectedPokemon, setSelectedPokemon] = useState();
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
-    const [stats, setStats] = useState({
-      height: 0,
-      weight: 0,
-      exp: 0,
-      hp: 0,
-      attack: 0,
-      defence: 0,
-      splAttack: 0,
-      splDefence: 0,
-      speed: 0,
-    });
+  const dispatch = useDispatch(); 
+  
+  const selectedPokemon = useSelector(state => selectPokemonByName(state, pokemon));
+  const loading = useSelector(selectLoading);
+  const error = useSelector(selectError);
+  
+  const [stats, setStats] = useState({
+    height: 0,
+    weight: 0,
+    exp: 0,
+    hp: 0,
+    attack: 0,
+    defence: 0,
+    splAttack: 0,
+    splDefence: 0,
+    speed: 0,
+  });
 
   console.log("useParams pokemon:", pokemon);
 
@@ -48,41 +53,45 @@ const SearchedPokemon = () => {
     fairy: "#D685AD",
   }
 
+  useEffect(() => {
+    if (selectedPokemon) {
+      console.log(` Found ${pokemon} in cache! No API call needed.`);
+      setStats({
+        height: (selectedPokemon.height / 3.048).toFixed(1),
+        weight: (selectedPokemon.weight / 10).toFixed(1),
+        exp: selectedPokemon.base_experience,
+        hp: selectedPokemon.stats[0].base_stat,
+        attack: selectedPokemon.stats[1].base_stat,
+        defence: selectedPokemon.stats[2].base_stat,
+        splAttack: selectedPokemon.stats[3].base_stat,
+        splDefence: selectedPokemon.stats[4].base_stat,
+        speed: selectedPokemon.stats[5].base_stat,
+      });
+    } else {
+      console.log(` ${pokemon} not in cache, fetching from API...`);
+      dispatch(fetchPokemon(pokemon));
+    }
+  }, [pokemon, selectedPokemon, dispatch]);
 
   useEffect(() => {
-    const apiUrl = `https://pokeapi.co/api/v2/pokemon/${pokemon}`;
-
-    async function fetchPokemon() {
-      try {
-        setLoading(true);
-        setError(false);
-        const response = await fetch(apiUrl);
-        if (!response.ok) throw new Error("Error occurred!");
-        const data = await response.json();
-        setSelectedPokemon(data);
-        setStats({
-          height: (data.height / 3.048).toFixed(1),
-          weight: (data.weight / 10).toFixed(1),
-          exp: data.base_experience,
-          hp: data.stats[0].base_stat,
-          attack: data.stats[1].base_stat,
-          defence: data.stats[2].base_stat,
-          splAttack: data.stats[3].base_stat,
-          splDefence: data.stats[4].base_stat,
-          speed: data.stats[5].base_stat,
-        });
-        setLoading(false);
-      } catch (error) {
-        setLoading(false);
-        setError(true);
-      }
+    if (selectedPokemon) {
+      setStats({
+        height: (selectedPokemon.height / 3.048).toFixed(1),
+        weight: (selectedPokemon.weight / 10).toFixed(1),
+        exp: selectedPokemon.base_experience,
+        hp: selectedPokemon.stats[0].base_stat,
+        attack: selectedPokemon.stats[1].base_stat,
+        defence: selectedPokemon.stats[2].base_stat,
+        splAttack: selectedPokemon.stats[3].base_stat,
+        splDefence: selectedPokemon.stats[4].base_stat,
+        speed: selectedPokemon.stats[5].base_stat,
+      });
     }
-
-    fetchPokemon();
-  }, [pokemon]);
+  }, [selectedPokemon]);
 
   if (loading) return <LoadingScreen />;
   if (error) return <ErrorScreen />;
+  if (!selectedPokemon) return <LoadingScreen />; 
 
   return (
     <div className="searched-pokemon maxWidth">

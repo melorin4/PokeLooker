@@ -8,6 +8,12 @@
 
 .searched-pokemon-header {
   margin-bottom: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
 }
 
 .pokemon-details {
@@ -25,6 +31,7 @@
   font-size: clamp(2rem, 6vw, 4rem);
   text-transform: capitalize;
   font-weight: 800;
+  text-align: center;
 }
 
 .searched-pokemon-info .type {
@@ -102,6 +109,17 @@
     width: 100%;
     display: flex;
     align-items: center;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 768px) {
+  .searched-pokemon-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .pokemon-navigation {
     justify-content: center;
   }
 }

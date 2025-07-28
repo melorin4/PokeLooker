@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { useSelector, useDispatch } from 'react-redux'; 
-import { fetchPokemon, selectPokemonByName, selectLoading, selectError } from '../store/pokemonSlice'; 
+import axios from 'axios';
 import LoadingScreen from '../components/LoadingScreen';
 import ErrorScreen from './ErrorScreen';
 import Button from '../components/Button';
@@ -11,12 +10,12 @@ import "../css/SearchedPokemon.css"
 
 const SearchedPokemon = () => {
   const { pokemon } = useParams();
-  const dispatch = useDispatch(); 
   
-  const selectedPokemon = useSelector(state => selectPokemonByName(state, pokemon));
-  const loading = useSelector(selectLoading);
-  const error = useSelector(selectError);
+  const [pokemonData, setPokemonData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   
+  const [activeTab, setActiveTab] = useState('overview');
   const [stats, setStats] = useState({
     height: 0,
     weight: 0,
@@ -54,44 +53,78 @@ const SearchedPokemon = () => {
   }
 
   useEffect(() => {
-    if (selectedPokemon) {
-      console.log(` Found ${pokemon} in cache! No API call needed.`);
-      setStats({
-        height: (selectedPokemon.height / 3.048).toFixed(1),
-        weight: (selectedPokemon.weight / 10).toFixed(1),
-        exp: selectedPokemon.base_experience,
-        hp: selectedPokemon.stats[0].base_stat,
-        attack: selectedPokemon.stats[1].base_stat,
-        defence: selectedPokemon.stats[2].base_stat,
-        splAttack: selectedPokemon.stats[3].base_stat,
-        splDefence: selectedPokemon.stats[4].base_stat,
-        speed: selectedPokemon.stats[5].base_stat,
-      });
-    } else {
-      console.log(` ${pokemon} not in cache, fetching from API...`);
-      dispatch(fetchPokemon(pokemon));
-    }
-  }, [pokemon, selectedPokemon, dispatch]);
+    const fetchPokemonData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        console.log(`Fetching ${pokemon} from API...`);
+        
+        const response = await axios.get(`https://pokeapi.co/api/v2/pokemon/${pokemon}`);
+        const data = response.data;
+        
+        setPokemonData(data);
+        setStats({
+          height: (data.height / 3.048).toFixed(1),
+          weight: (data.weight / 10).toFixed(1),
+          exp: data.base_experience,
+          hp: data.stats[0].base_stat,
+          attack: data.stats[1].base_stat,
+          defence: data.stats[2].base_stat,
+          splAttack: data.stats[3].base_stat,
+          splDefence: data.stats[4].base_stat,
+          speed: data.stats[5].base_stat,
+        });
+      } catch (err) {
+        console.error('Error fetching Pokemon:', err);
+        setError('Failed to fetch Pokemon data');
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  useEffect(() => {
-    if (selectedPokemon) {
-      setStats({
-        height: (selectedPokemon.height / 3.048).toFixed(1),
-        weight: (selectedPokemon.weight / 10).toFixed(1),
-        exp: selectedPokemon.base_experience,
-        hp: selectedPokemon.stats[0].base_stat,
-        attack: selectedPokemon.stats[1].base_stat,
-        defence: selectedPokemon.stats[2].base_stat,
-        splAttack: selectedPokemon.stats[3].base_stat,
-        splDefence: selectedPokemon.stats[4].base_stat,
-        speed: selectedPokemon.stats[5].base_stat,
-      });
+    if (pokemon) {
+      fetchPokemonData();
     }
-  }, [selectedPokemon]);
+  }, [pokemon]);
 
   if (loading) return <LoadingScreen />;
   if (error) return <ErrorScreen />;
-  if (!selectedPokemon) return <LoadingScreen />; 
+  if (!pokemonData) return <LoadingScreen />; 
+
+  const renderTabContent = () => {
+    switch(activeTab){
+      case 'overview':
+        return (
+          <div className="overview-content">
+            <div className="pokemon-description">
+              <h3>seed pokemon</h3>
+              <p>it's a pokemon</p>
+            </div>
+            <div className="pokemon-measurements">
+              <div className="mesaurement">
+                <span className="weightLabel">weight: </span>
+                <span className="value">{stats.weight}kg</span>
+
+                <span className="heightLabel">height: </span>
+                <span className="value">{stats.height}m</span>
+              </div>
+            </div>
+          </div>
+        )
+        case 'stats':
+          return <Stats stats={stats}/>;
+        case 'evolution':
+          return (
+            <div className="evolution-content">
+              <p>evolution</p>
+            </div>
+          )
+
+        
+        default:
+          return null;
+    }
+  }
 
   return (
     <div className="searched-pokemon maxWidth">
@@ -103,9 +136,9 @@ const SearchedPokemon = () => {
 
       <div className="pokemon-details">
         <div className="searched-pokemon-info">
-          <h4>{selectedPokemon.name}</h4>
+          <h4>{pokemonData.name}</h4>
           <div className="type">
-            {selectedPokemon.types.map((type, index) => (
+            {pokemonData.types.map((type, index) => (
               <span
                 key={index}
                 style={{
@@ -128,13 +161,38 @@ const SearchedPokemon = () => {
               </span>
             ))}
           </div>
-          <Stats stats={stats} />
+
+          <div className="tab-navigation">
+            <button
+              className={`tab-button ${activeTab === 'overview' ? 'active' : ''}`}
+              onClick={()=> setActiveTab('overview')}
+            >
+              Overview
+            </button>
+            <button
+              className={`tab-button ${activeTab === 'stats'? 'active': ''}`}
+              onClick={()=> setActiveTab('stats')}
+            >
+              Stats
+            </button>
+
+            <button
+              className={`tab-button ${activeTab === 'evolution'? 'active': ''}`}
+              onClick={()=> setActiveTab('evolution')}
+            >
+              evolution
+            </button>
+            
+          </div>
+          <div className="tab-content">
+            {renderTabContent()}
+          </div>
         </div>
 
         <div className="previewImage">
           <img
-            src={selectedPokemon.sprites.other.home.front_default}
-            alt={selectedPokemon.name}
+            src={pokemonData.sprites.other.home.front_default}
+            alt={pokemonData.name}
           />
         </div>
       </div>

@@ -1,68 +1,66 @@
 import React, { useEffect, useState } from "react";
-import { useSelector, useDispatch } from 'react-redux'; 
-import { 
-  fetchPokemonList, 
-  selectPokemonList, 
-  selectPokemonListMeta,
-  selectListLoading, 
-  selectError,
-  selectIsPokemonListFresh 
-} from '../store/pokemonSlice'; 
 import Header from "../components/Header";
 import Feed from "../components/Feed";
 import LoadingScreen from "../components/LoadingScreen";
 
 const Home = () => {
-  const dispatch = useDispatch(); 
-  
-  const allPokemons = useSelector(selectPokemonList);
-  const pokemonListMeta = useSelector(selectPokemonListMeta);
-  const listLoading = useSelector(selectListLoading);
-  const error = useSelector(selectError);
-  const isListFresh = useSelector(selectIsPokemonListFresh);
-  
+  const [allPokemons, setAllPokemons] = useState([]);
   const [paginatedPokemons, setPaginatedPokemons] = useState([]);
   const [filteredPokemons, setFilteredPokemons] = useState([]);
   const [offSet, setOffSet] = useState(() => {
     const storedOffSet = sessionStorage.getItem("offset");
     return storedOffSet ? parseInt(storedOffSet, 10) : 0;
   });
+  const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
   const [noResults, setNoResults] = useState(false);
+  const [pageInput, setPageInput] = useState("");
+  const [totalCount, setTotalCount] = useState(0);
 
+  const ITEMS_PER_PAGE = 50;
+
+  // Fetch all pokemons on mount (just names + urls)
   useEffect(() => {
-    if (allPokemons.length > 0 && isListFresh) {
-      console.log(`✅ Found ${allPokemons.length} Pokemon in cache! No API call needed.`);
-      return; 
+    async function fetchAllPokemons() {
+      try {
+        const res = await fetch("https://pokeapi.co/api/v2/pokemon?limit=2000");
+        const data = await res.json();
+        setAllPokemons(data.results);
+      } catch (error) {
+        console.error("Failed to fetch all pokemons", error);
+      }
     }
-    
-    if (allPokemons.length === 0) {
-      console.log('🌐 No Pokemon list in cache, fetching from API...');
-    } else {
-      console.log('🔄 Pokemon list cache is old (>1 hour), refreshing...');
-    }
-    
-    dispatch(fetchPokemonList({ limit: 1000, offset: 0 }));
-  }, [dispatch, allPokemons.length, isListFresh]);
+    fetchAllPokemons();
+  }, []);
 
+  // Fetch paginated pokemons for normal display
   useEffect(() => {
-    if (query.trim() === "" && allPokemons.length > 0) {
-      const startIndex = offSet;
-      const endIndex = offSet + 48;
-      const paginated = allPokemons.slice(startIndex, endIndex);
-      setPaginatedPokemons(paginated);
-      console.log(`📄 Showing Pokemon ${startIndex + 1}-${Math.min(endIndex, allPokemons.length)} from cache`);
+    async function fetchPaginated() {
+      setLoading(true);
+      setNoResults(false);
+      try {
+        const apiUrl = `https://pokeapi.co/api/v2/pokemon?limit=${ITEMS_PER_PAGE}&offset=${offSet}`;
+        const res = await fetch(apiUrl);
+        const data = await res.json();
+        setPaginatedPokemons(data.results);
+        setTotalCount(data.count);
+      } catch (error) {
+        console.error("Failed to fetch paginated pokemons", error);
+        setPaginatedPokemons([]);
+      }
+      setLoading(false);
     }
-  }, [offSet, query, allPokemons]);
 
+    if (query.trim() === "") {
+      fetchPaginated();
+    }
+  }, [offSet, query]);
+
+  // Filter locally for partial matches when query changes
   useEffect(() => {
     if (query.trim() === "") {
       setFilteredPokemons([]);
       setNoResults(false);
-      return;
-    }
-
-    if (allPokemons.length === 0) {
       return;
     }
 
@@ -72,60 +70,105 @@ const Home = () => {
 
     setFilteredPokemons(filtered);
     setNoResults(filtered.length === 0);
-    console.log(`🔍 Filtered to ${filtered.length} Pokemon matching "${query}"`);
   }, [query, allPokemons]);
 
+  // Decide which list to show
   const displayPokemons = query.trim() === "" ? paginatedPokemons : filteredPokemons;
-  
-  const isLoading = listLoading && allPokemons.length === 0;
+
+  // Pagination calculations
+  const currentPage = Math.floor(offSet / ITEMS_PER_PAGE) + 1;
+  const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
+  const isFirstPage = offSet === 0;
+  const isLastPage = offSet + ITEMS_PER_PAGE >= totalCount;
+
+  // Pagination handlers
+  const goToPage = (pageNumber) => {
+    const newOffSet = (pageNumber - 1) * ITEMS_PER_PAGE;
+    setOffSet(newOffSet);
+    sessionStorage.setItem("offset", newOffSet.toString());
+  };
+
+  const goToFirstPage = () => goToPage(1);
+  const goToLastPage = () => goToPage(totalPages);
+  const goToPrevPage = () => goToPage(currentPage - 1);
+  const goToNextPage = () => goToPage(currentPage + 1);
+
+  const handlePageInputSubmit = (e) => {
+    e.preventDefault();
+    const pageNumber = parseInt(pageInput, 10);
+    if (pageNumber >= 1 && pageNumber <= totalPages) {
+      goToPage(pageNumber);
+      setPageInput("");
+    } else {
+      alert(`Please enter a page number between 1 and ${totalPages}`);
+    }
+  };
 
   return (
     <div className="Home maxWidth">
       <Header query={query} setQuery={setQuery} />
-      
-      {allPokemons.length > 0 && (
-        <div style={{ 
-          fontSize: '0.8rem', 
-          color: '#666', 
-          textAlign: 'center', 
-          marginBottom: '1rem' 
-        }}>
-        </div>
-      )}
-      
-      {isLoading && <LoadingScreen />}
-      
-      {!isLoading && noResults && <p>No Pokémon found for "{query}"</p>}
-      {!isLoading && !noResults && displayPokemons.length > 0 && (
+      {loading && <LoadingScreen />}
+      {!loading && noResults && <p>No Pokémon found for "{query}"</p>}
+      {!loading && !noResults && (
         <>
           <Feed pokemons={displayPokemons} />
           {query.trim() === "" && (
             <div className="pagination">
-              <button 
-                className="btn" 
-                onClick={() => {
-                  const newOffSet = offSet <= 50 ? 0 : offSet - 50;
-                  setOffSet(newOffSet);
-                  sessionStorage.setItem("offset", newOffSet.toString());
-                }}
-                disabled={offSet === 0}
-              >
-                Prev
-              </button>
-              <span style={{ margin: '0 1rem', fontSize: '0.9rem' }}>
-                Page {Math.floor(offSet / 48) + 1}
-              </span>
-              <button 
-                className="btn" 
-                onClick={() => {
-                  const newOffSet = offSet + 48;
-                  setOffSet(newOffSet);
-                  sessionStorage.setItem("offset", newOffSet.toString());
-                }}
-                disabled={offSet + 48 >= allPokemons.length}
-              >
-                Next
-              </button>
+              <div className="pagination-controls">
+                <button 
+                  className="btn pagination-btn" 
+                  onClick={goToFirstPage}
+                  disabled={isFirstPage}
+                  title="First Page"
+                >
+                  ⏮️
+                </button>
+                <button 
+                  className="btn pagination-btn" 
+                  onClick={goToPrevPage}
+                  disabled={isFirstPage}
+                  title="Previous Page"
+                >
+                  ⬅️
+                </button>
+                
+                <div className="page-info">
+                  <span>Page {currentPage} of {totalPages}</span>
+                  <form onSubmit={handlePageInputSubmit} className="page-input-form">
+                    <input
+                      type="number"
+                      value={pageInput}
+                      onChange={(e) => setPageInput(e.target.value)}
+                      placeholder="Go to page..."
+                      min="1"
+                      max={totalPages}
+                      className="page-input"
+                    />
+                    <button type="submit" className="btn go-btn">Go</button>
+                  </form>
+                </div>
+
+                <button 
+                  className="btn pagination-btn" 
+                  onClick={goToNextPage}
+                  disabled={isLastPage}
+                  title="Next Page"
+                >
+                  ➡️
+                </button>
+                <button 
+                  className="btn pagination-btn" 
+                  onClick={goToLastPage}
+                  disabled={isLastPage}
+                  title="Last Page"
+                >
+                  ⏭️
+                </button>
+              </div>
+              
+              <div className="pagination-info">
+                <span>Showing {offSet + 1}-{Math.min(offSet + ITEMS_PER_PAGE, totalCount)} of {totalCount} Pokémon</span>
+              </div>
             </div>
           )}
         </>

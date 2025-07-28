@@ -90,6 +90,100 @@
   height: 400px;
 }
 
+/* Tab Navigation Styles */
+.tab-navigation {
+  display: flex;
+  margin: 2rem 0 1rem 0;
+  border-bottom: 2px solid #f0f0f0;
+  gap: 0;
+}
+
+.tab-button {
+  background: none;
+  border: none;
+  padding: 1rem 2rem;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-bottom: 3px solid transparent;
+  text-transform: capitalize;
+  min-width: 120px;
+}
+
+.tab-button:hover {
+  color: #333;
+  background-color: #f8f9fa;
+}
+
+.tab-button.active {
+  color: #333;
+  border-bottom-color: #4CAF50;
+  font-weight: 600;
+}
+
+/* Tab Content Styles */
+.tab-content {
+  padding: 2rem 0;
+  min-height: 200px;
+}
+
+.overview-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.pokemon-description h3 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #333;
+}
+
+.pokemon-description p {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: #666;
+  margin: 0;
+}
+
+.pokemon-measurements {
+  display: flex;
+  gap: 3rem;
+  justify-content: center;
+  padding: 1.5rem;
+  background-color: #f8f9fa;
+  border-radius: 12px;
+}
+
+.measurement {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.measurement .label {
+  font-size: 0.9rem;
+  color: #666;
+  font-weight: 500;
+}
+
+.measurement .value {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.evolution-content {
+  text-align: center;
+  padding: 2rem;
+  color: #666;
+  font-style: italic;
+}
+/*------------------*/
 @media (max-width: 786px) {
   .pokemon-details {
     flex-direction: column-reverse;

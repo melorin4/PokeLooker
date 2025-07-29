@@ -2,14 +2,12 @@ import React from 'react'
 
 const Stat = ({parameter,value,units}) => {
     return (
-        <div className='stat'>
-            <div className="parameter">{parameter}</div>
-            <div className="value">
+        <div className='stat-item'>
+            <span className="stat-label">{parameter}</span>
+            <span className="stat-value">
                 {value}
-                <span className="unit">{units}</span>
-            </div>
-            
-
+                {units && <span className="stat-unit"> {units}</span>}
+            </span>
         </div>
     )
 }

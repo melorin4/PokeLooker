@@ -13,9 +13,50 @@ const SearchedPokemon = () => {
   
   const [pokemonData, setPokemonData] = useState(null);
   const [speciesData, setSpeciesData] = useState(null);
+  const [evolutionChain, setEvolutionChain] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
+  //claude did this part, need to review
+  // Helper functions to get species data
+  const getGenus = () => {
+    if (!speciesData?.genera) return 'Pokemon';
+    const englishGenus = speciesData.genera.find(g => g.language.name === 'en');
+    return englishGenus?.genus || 'Pokemon';
+  };
+
+  const getDescription = () => {
+    if (!speciesData?.flavor_text_entries) return 'No description available.';
+    const englishText = speciesData.flavor_text_entries.find(f => f.language.name === 'en');
+    if (!englishText?.flavor_text) return 'No description available.';
+    return englishText.flavor_text.replace(/\f/g, ' ');
+  };
+ //https://pokeapi.co/docs/v2#evolution-section
+  // Helper function to process evolution chain
+  const getEvolutionChain = () => {
+    if (!evolutionChain?.chain) return [];
+    
+    const evolutions = [];
+    let currentEvolution = evolutionChain.chain;
+    
+    // Process the evolution chain recursively
+    const processEvolution = (evolution) => {
+      const pokemonId = evolution.species.url.split('/').slice(-2, -1)[0];
+      evolutions.push({
+        name: evolution.species.name,
+        id: pokemonId,
+        image: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/${pokemonId}.png`
+      });
+      
+      // Process next evolutions
+      evolution.evolves_to.forEach(nextEvolution => {
+        processEvolution(nextEvolution);
+      });
+    };
+    
+    processEvolution(currentEvolution);
+    return evolutions;
+  };
+
   const [activeTab, setActiveTab] = useState('overview');
   const [stats, setStats] = useState({
     height: 0,
@@ -79,6 +120,10 @@ const SearchedPokemon = () => {
         const speciesResponse = await axios.get(data.species.url);
         const speciesData = speciesResponse.data;
         setSpeciesData(speciesData);
+
+        const evolutionChainResponse = await axios.get(speciesData.evolution_chain.url);
+        const evolutionChainData = evolutionChainResponse.data;
+        setEvolutionChain(evolutionChainData);
       } catch (err) {
         console.error('Error fetching Pokemon:', err);
         setError('Failed to fetch Pokemon data');
@@ -99,11 +144,15 @@ const SearchedPokemon = () => {
   const renderTabContent = () => {
     switch(activeTab){
       case 'overview':
+        // Get species data using helper functions
+        const genus = getGenus();
+        const description = getDescription();
+        
         return (
           <div className="overview-content">
             <div className="pokemon-description">
-              <h3>{speciesData.genera.find(g => g.language.name === 'en').genus}</h3>
-              <p>{speciesData.flavor_text_entries.find(f => f.language.name === 'en').flavor_text}</p>
+              <h3>{genus}</h3>
+              <p>{description}</p>
             </div>
             <div className="pokemon-measurements">
               <div className="measurement-item">
@@ -120,9 +169,15 @@ const SearchedPokemon = () => {
         case 'stats':
           return <Stats stats={stats}/>;
         case 'evolution':
+          const evolutions = getEvolutionChain();
           return (
             <div className="evolution-content">
-              <p>evolution</p>
+              {evolutions.map((evolution, index) => (
+                <div key={index} className="evolution-item">
+                  <img src={evolution.image} alt={evolution.name} />
+                  <span>{evolution.name}</span>
+                </div>
+              ))}
             </div>
           )
 

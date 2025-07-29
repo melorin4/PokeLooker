@@ -50,39 +50,49 @@
 }
 
 .stats {
-  margin-top: 3rem;
+
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-  gap: 2rem;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 1.5rem;
+  padding: 1.5rem;
+  background-color: #f8f9fa;
+  border-radius: 12px;
 }
 
-.stats .stat {
+.stat-item {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: space-between;
   gap: 0.5rem;
+  min-width: 100px;
 }
 
-.stat .parameter {
+.stat-label {
   font-size: 0.9rem;
-  font-weight: 400;
-}
-
-.stat .value {
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  padding: 1rem;
-  border-radius: 5px;
-  font-size: 1.5rem;
-  font-weight: 400;
-  min-width: 120px;
+  color: #666;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
   text-align: center;
 }
 
-.stat .unit {
-  margin-left: 4px;
-  font-weight: 300;
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #333;
+  padding: 0.5rem 1rem;
+  background-color: white;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  text-align: center;
+  min-width: 80px;
+}
+
+.stat-unit {
   font-size: 0.9rem;
+  font-weight: 400;
+  color: #666;
 }
 
 .previewImage img {
@@ -186,10 +196,49 @@
 }
 
 .evolution-content {
-  text-align: center;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 2rem;
   padding: 2rem;
-  color: #666;
-  font-style: italic;
+  flex-wrap: wrap;
+}
+
+.evolution-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background-color: #f8f9fa;
+  border-radius: 12px;
+  border: 1px solid #e0e0e0;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  min-width: 150px;
+}
+
+.evolution-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.evolution-item img {
+  width: 100px;
+  height: 100px;
+  object-fit: contain;
+  background-color: white;
+  border-radius: 8px;
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+}
+
+.evolution-item span {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #333;
+  text-transform: capitalize;
+  text-align: center;
 }
 
 /*------------------*/

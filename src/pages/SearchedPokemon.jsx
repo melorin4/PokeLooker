@@ -12,6 +12,7 @@ const SearchedPokemon = () => {
   const { pokemon } = useParams();
   
   const [pokemonData, setPokemonData] = useState(null);
+  const [speciesData, setSpeciesData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
@@ -74,6 +75,10 @@ const SearchedPokemon = () => {
           splDefence: data.stats[4].base_stat,
           speed: data.stats[5].base_stat,
         });
+
+        const speciesResponse = await axios.get(data.species.url);
+        const speciesData = speciesResponse.data;
+        setSpeciesData(speciesData);
       } catch (err) {
         console.error('Error fetching Pokemon:', err);
         setError('Failed to fetch Pokemon data');
@@ -97,16 +102,17 @@ const SearchedPokemon = () => {
         return (
           <div className="overview-content">
             <div className="pokemon-description">
-              <h3>seed pokemon</h3>
-              <p>it's a pokemon</p>
+              <h3>{speciesData.genera.find(g => g.language.name === 'en').genus}</h3>
+              <p>{speciesData.flavor_text_entries.find(f => f.language.name === 'en').flavor_text}</p>
             </div>
             <div className="pokemon-measurements">
-              <div className="mesaurement">
-                <span className="weightLabel">weight: </span>
-                <span className="value">{stats.weight}kg</span>
-
-                <span className="heightLabel">height: </span>
-                <span className="value">{stats.height}m</span>
+              <div className="measurement-item">
+                <span className="measurement-label">Weight</span>
+                <span className="measurement-value">{stats.weight} kg</span>
+              </div>
+              <div className="measurement-item">
+                <span className="measurement-label">Height</span>
+                <span className="measurement-value">{stats.height} m</span>
               </div>
             </div>
           </div>

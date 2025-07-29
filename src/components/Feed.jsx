@@ -9,7 +9,7 @@ const pokemonCache = new Map();
 const Feed = ({ pokemons }) => {
   const [detailedPokemons, setDetailedPokemons] = useState([]);
   const [loading, setLoading] = useState(true);
-
+//caching without redux
   useEffect(() => {
     async function fetchDetails() {
       setLoading(true);

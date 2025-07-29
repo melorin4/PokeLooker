@@ -68,9 +68,23 @@ const Home = () => {
       return;
     }
 
-    const filtered = allPokemons.filter((poke) =>
-      poke.name.toLowerCase().includes(debouncedQuery.toLowerCase())
-    );
+    const searchTerm = debouncedQuery.toLowerCase().trim();
+    
+    // Check if the search term is a number (ID search) 
+    const searchNumber = Number(searchTerm);
+    const isNumericSearch = !isNaN(searchNumber) && searchTerm !== "";
+    
+    let filtered;
+    
+    if (isNumericSearch) {
+      // Search by ID - Pokemon IDs correspond to their position in the array + 1
+      const pokemonId = parseInt(searchTerm, 10);
+      filtered = allPokemons.filter((poke, index) => index + 1 === pokemonId);
+    } else {
+      filtered = allPokemons.filter((poke) =>
+        poke.name.toLowerCase().includes(searchTerm)
+      );
+    }
 
     setFilteredPokemons(filtered);
     setNoResults(filtered.length === 0);

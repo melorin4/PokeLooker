@@ -158,23 +158,31 @@
   border-radius: 12px;
 }
 
-.measurement {
+.measurement-item {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 0.5rem;
+  min-width: 100px;
 }
 
-.measurement .label {
+.measurement-label {
   font-size: 0.9rem;
   color: #666;
   font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-.measurement .value {
+.measurement-value {
   font-size: 1.5rem;
   font-weight: 600;
   color: #333;
+  padding: 0.5rem 1rem;
+  background-color: white;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
 .evolution-content {
@@ -183,6 +191,7 @@
   color: #666;
   font-style: italic;
 }
+
 /*------------------*/
 @media (max-width: 786px) {
   .pokemon-details {

@@ -23,7 +23,7 @@ const colours = {
 };
 
 const Card = ({ data }) => {
-  // Get pokeId either from URL or from detailed data
+
   let pokeId;
   if (data.url) {
     const urlParts = data.url.split("/");
@@ -31,7 +31,7 @@ const Card = ({ data }) => {
   } else if (data.id) {
     pokeId = data.id;
   } else {
-    // no ID info — render fallback or nothing
+    //nothing
     return <div>Loading...</div>;
   }
 

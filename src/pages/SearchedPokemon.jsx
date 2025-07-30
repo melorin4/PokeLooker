@@ -8,6 +8,8 @@ import Stats from '../components/Stats';
 import { Link } from 'react-router-dom';
 import "../css/SearchedPokemon.css"
 
+const pokemonCache = new Map();
+
 const SearchedPokemon = () => {
   const { pokemon } = useParams();
   
@@ -101,29 +103,53 @@ const SearchedPokemon = () => {
         setError(null);
         console.log(`Fetching ${pokemon} from API...`);
         
-        const response = await axios.get(`https://pokeapi.co/api/v2/pokemon/${pokemon}`);
-        const data = response.data;
-        
-        setPokemonData(data);
-        setStats({
-          height: (data.height / 3.048).toFixed(1),
-          weight: (data.weight / 10).toFixed(1),
-          exp: data.base_experience,
-          hp: data.stats[0].base_stat,
-          attack: data.stats[1].base_stat,
-          defence: data.stats[2].base_stat,
-          splAttack: data.stats[3].base_stat,
-          splDefence: data.stats[4].base_stat,
-          speed: data.stats[5].base_stat,
-        });
-
-        const speciesResponse = await axios.get(data.species.url);
-        const speciesData = speciesResponse.data;
-        setSpeciesData(speciesData);
-
-        const evolutionChainResponse = await axios.get(speciesData.evolution_chain.url);
-        const evolutionChainData = evolutionChainResponse.data;
-        setEvolutionChain(evolutionChainData);
+        // Check if all data is already cached
+        if (pokemonCache.has(pokemon)) {
+          console.log(`Using cached data for ${pokemon}`);
+          const cachedData = pokemonCache.get(pokemon);
+          setPokemonData(cachedData.pokemonData);
+          setSpeciesData(cachedData.speciesData);
+          setEvolutionChain(cachedData.evolutionChain);
+          setStats(cachedData.stats);
+        } else {
+          console.log(`Fetching fresh data for ${pokemon}`);
+          
+          // Fetch all data
+          const response = await axios.get(`https://pokeapi.co/api/v2/pokemon/${pokemon}`);
+          const data = response.data;
+          
+          const speciesResponse = await axios.get(data.species.url);
+          const speciesData = speciesResponse.data;
+          
+          const evolutionChainResponse = await axios.get(speciesData.evolution_chain.url);
+          const evolutionChainData = evolutionChainResponse.data;
+          
+          const stats = {
+            height: (data.height / 3.048).toFixed(1),
+            weight: (data.weight / 10).toFixed(1),
+            exp: data.base_experience,
+            hp: data.stats[0].base_stat,
+            attack: data.stats[1].base_stat,
+            defence: data.stats[2].base_stat,
+            splAttack: data.stats[3].base_stat,
+            splDefence: data.stats[4].base_stat,
+            speed: data.stats[5].base_stat,
+          };
+          
+          // Store everything in one cache entry
+          pokemonCache.set(pokemon, {
+            pokemonData: data,
+            speciesData,
+            evolutionChain: evolutionChainData,
+            stats
+          });
+          
+          // Set state
+          setPokemonData(data);
+          setSpeciesData(speciesData);
+          setEvolutionChain(evolutionChainData);
+          setStats(stats);
+        }
       } catch (err) {
         console.error('Error fetching Pokemon:', err);
         setError('Failed to fetch Pokemon data');
